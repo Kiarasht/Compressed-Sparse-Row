@@ -3,27 +3,32 @@ import java.io.FileReader;
 import java.io.IOException;
 
 public class Matrix {
-	private static int[][] CSR = new int[3][30];        // Three one dimensional arrays holding a CSR format of a matrix
-	private static int[] nxm = new int[2];              // N and M of the matrix
-	private static int loop = 0;                        // Number of filled elements in first array of CSR
-	private static int loop2 = 0;                       // for second array
-	private static int loop3 = 0;                       // for third array
+	protected int[][] CSR = new int[3][30];        // Three one dimensional arrays holding a CSR format of a matrix
+	protected int numRows = 0;                     // Number of rows
+	protected int numCols = 0;                     // Number of columns
+	protected int loop = 0;                        // Number of filled elements in first array of CSR
+	protected int loop2 = 0;                       // For second array
+	protected int loop3 = 0;                       // For third array
 
 
 	/**
 	 * Function that reads a matrix of any size from a text file and turns it into a
 	 * compressed sparse row. The matrix is read from a file called "matrix.txt"
+	 *
+	 * @param filename Filename where a matrix data will be read
+	 * @return Returns the CSR matrix
+	 * @throws IOException IO erros will be thrown back
 	 */
-	public void matrix_to_CSR(String filename) throws IOException {
+	public int[][] matrix_to_CSR(String filename) throws IOException {
 		BufferedReader br = new BufferedReader(new FileReader(filename));
 		String line = br.readLine();
 		CSR[2][loop3++] = 0;
 
 		while (line != null) {
-			++nxm[0];
+			numRows++;
 			int count = 0;
 			String[] values = line.split(" ");
-			nxm[1] = values.length;
+			numCols = values.length;
 			for (int i = 0; i < values.length; i++) {
 				String value = values[i];
 				if (Integer.parseInt(value) != 0) {
@@ -35,56 +40,61 @@ public class Matrix {
 			CSR[2][loop3++] = CSR[2][loop3 - 2] + count;
 			line = br.readLine();
 		}
-		printarray(CSR[0], loop, true);
-		printarray(CSR[1], loop2, true);
-		printarray(CSR[2], loop3, true);
+		return CSR;
 	}
 
 	/**
-	 * Function will multiply a CSR matrix with a vector.
+	 * Function will multiply a CSR matrix with a vector
+	 *
+	 * @param vector A vector that will be multiplied by this object
+	 * @return Returns the results from the multiplication
+	 * @throws MatrixException If N of Matrix A doesn't match M of Vector
 	 */
-	public void CSR_mult_vector() throws MatrixException {
-		int[] result = new int[8];
-		int[] vector = {1, 4, 4, 2, 0, 2, 3, 5};
-
-		if (nxm[1] != result.length) {
-			throw new MatrixException("Columns of Matrix A doesn't match height of Vertor's.");
+	public int[] CSR_mult_vector(int[] vector) throws MatrixException {
+		if (numCols != vector.length) {
+			throw new MatrixException("Columns of Matrix A doesn't match rows of Vector's.");
 		}
 
-		for (int i = 0; i < nxm[0]; ++i) {
+		int[] result = new int[vector.length];
+		for (int i = 0; i < numRows; ++i) {
 			for (int k = CSR[2][i]; k < CSR[2][i + 1]; k = k + 1) {
 				result[i] = result[i] + CSR[0][k] * vector[CSR[1][k]];
 			}
 		}
-		printarray(result, nxm[0], true);
+		return result;
 	}
 
-	/**
-	 * printarray is responsible of either just printing the array values or pretty
-	 * printing it by adding additional commas, brackets, etc...
-	 *
-	 * @param array       The array that needs to be printed.
-	 * @param length      The length of the array. Excluding the trailing zeros.
-	 * @param prettyprint Simple print or pretty print?
-	 */
-	public void printarray(int[] array, int length, boolean prettyprint) {
-		if (!prettyprint) {
-			for (int i = 0; i < length; ++i) {
-				System.out.print(array[i] + " ");
+	public Matrix CSR_to_transpose() throws IOException {
+		Matrix transpose = new Matrix();
+		int i, j, k, index;
+		int m = numRows;
+		int n = numCols;
+		int[] count = new int[100];
+		
+		for (i = 0; i < n; i++) {
+			for (j = CSR[2][i]; j < CSR[2][i + 1]; j++) {
+				k = CSR[1][j];
+				count[k]++;
 			}
-			System.out.println();
-		} else {
-			StringBuilder sb = new StringBuilder();
-			sb.append('[');
-			for (int i = 0; i < length; ++i) {
-				if (i < length - 1) {
-					sb.append(array[i]).append(',').append(' ');
-				} else {
-					sb.append(array[i]);
-				}
-			}
-			sb.append(']');
-			System.out.println(sb.toString());
 		}
+
+		for (j = 0; j < m; j++) {
+			transpose.CSR[2][j + 1] = transpose.CSR[2][j] + count[j];
+		}
+
+		for (j = 0; j < m; j++) {
+			count[j] = 0;
+		}
+
+		for (i = 0; i < n; i++) {
+			for (j = CSR[2][i]; j < CSR[2][i + 1]; j++) {
+				k = CSR[1][j];
+				index = transpose.CSR[2][k] + count[k];
+				transpose.CSR[1][index] = i;
+				transpose.CSR[0][index] = CSR[0][j];
+				count[k]++;
+			}
+		}
+		return transpose;
 	}
 }
