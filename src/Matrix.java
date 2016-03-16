@@ -116,4 +116,32 @@ public class Matrix {
 		transpose.numRows = numCols;
 		return transpose;
 	}
+
+	/**
+	 * Function will multiply two compressed spare row matrices. One by the object,
+	 * one passed by parameter.
+	 *
+	 * @param second A second matrix that will be used to multiply
+	 * @return A new CSRMatrix object that holds the inner product of the two matrices
+	 */
+	public Matrix CSR_mult_CSR(Matrix second) {
+		int i = 0;
+		int j = 0;
+		int k = 0;
+		Matrix product = new Matrix();
+
+		while (i <= 29 && j <= 29) {
+			if (CSR[1][i] < second.CSR[1][j]) {
+				++i;
+			} else if (CSR[1][i] > second.CSR[1][j]) {
+				++j;
+			} else {
+				product.CSR[0][k] += CSR[0][i] * second.CSR[0][j];
+				++i;
+				++j;
+				++k;
+			}
+		}
+		return product;
+	}
 }
