@@ -9,27 +9,12 @@ public class Matrix {
 	private int numRows;                            // Number of rows
 	private int numCols;                            // Number of columns
 
+	/**
+	 * Empty constructor. If you use this you will be responsible of initializing the values or you might
+	 * get a null exception.
+	 */
 	public Matrix() {
 
-	}
-
-	/**
-	 * Constructor to set up the values for only the arrays. Class still needs numRows and numCols
-	 * so it will run couple of methods to find those values itself.
-	 *
-	 * @param val Array holding the non zero values.
-	 * @param col Array holding the column indexes.
-	 * @param ptr Array holding the row pointer values.
-	 */
-	public Matrix(int[] val, int[] col, int[] ptr) {
-		this.val = new int[val.length];
-		this.col = new int[col.length];
-		this.ptr = new int[ptr.length];
-		System.arraycopy(val, 0, this.val, 0, val.length);
-		System.arraycopy(col, 0, this.col, 0, col.length);
-		System.arraycopy(ptr, 0, this.ptr, 0, ptr.length);
-
-		this.numRows = ptr.length - 2;
 	}
 
 	/**
@@ -142,6 +127,14 @@ public class Matrix {
 		return result;
 	}
 
+	/**
+	 * Function will multiply a CSR matrix with a vector and return a result as if the transpose of that
+	 * matrix was multiplied.
+	 *
+	 * @param vector A vector that will be multiplied by this object
+	 * @return Returns the results from the multiplication
+	 * @throws MatrixException If N of Matrix A doesn't match M of Vector
+	 */
 	public int[] CSRT_mult_vector(int[] vector) throws MatrixException {
 		if (numRows != vector.length) {
 			throw new MatrixException("Rows of Matrix A_T doesn't match rows of Vector's.\n" +
@@ -157,7 +150,12 @@ public class Matrix {
 		return result;
 	}
 
-	public Matrix CSR_to_transpose() throws IOException {
+	/**
+	 * Function will transpose a compressed matrix directly.
+	 *
+	 * @return Returns a new matrix object which a transpose of the calling.
+	 */
+	public Matrix CSR_to_transpose() {
 		Matrix transpose = new Matrix();
 		int k, index;
 		int[] count = new int[100];
@@ -195,33 +193,12 @@ public class Matrix {
 	}
 
 	/**
-	 * Function will multiply two compressed spare row matrices. One by the object,
-	 * one passed by parameter.
+	 * Remove any duplicates from an array and remove any leading zeros after we are done. We need this for
+	 * the row_ptr array to work as needed.
 	 *
-	 * @param second A second matrix that will be used to multiply
-	 * @return A new CSRMatrix object that holds the inner product of the two matrices
+	 * @param input An array that needs to be cleaned, in this case for ptr
+	 * @return A new array that should be treated as the new ptr array
 	 */
-	public Matrix CSR_mult_CSR(Matrix second) {
-		int i = 0;
-		int j = 0;
-		int k = 0;
-		Matrix product = new Matrix();
-
-		while (i <= 29 && j <= 29) {
-			if (col[i] < second.col[j]) {
-				++i;
-			} else if (col[i] > second.col[j]) {
-				++j;
-			} else {
-				product.val[k] += val[i] * second.val[j];
-				++i;
-				++j;
-				++k;
-			}
-		}
-		return product;
-	}
-
 	int[] remove_duplicate(int[] input) {
 		if (input.length == 0 || input.length == 1) {
 			return input;
@@ -255,22 +232,47 @@ public class Matrix {
 		return results;
 	}
 
+	/**
+	 * Getter function for the val array.
+	 *
+	 * @return The val array in this object.
+	 */
 	int[] getval() {
 		return val;
 	}
 
+	/**
+	 * Getter function for the col array.
+	 *
+	 * @return The col array in this object.
+	 */
 	int[] getcol() {
 		return col;
 	}
 
+	/**
+	 * Getter function for the ptr array.
+	 *
+	 * @return The ptr array in this object.
+	 */
 	int[] getptr() {
 		return ptr;
 	}
 
+	/**
+	 * Getter function for the numRows int.
+	 *
+	 * @return The numbRows int in this object.
+	 */
 	int getNumRows() {
 		return numRows;
 	}
 
+	/**
+	 * Getter function for the numCols int.
+	 *
+	 * @return The numbCols int in this object.
+	 */
 	int getNumCols() {
 		return numCols;
 	}
